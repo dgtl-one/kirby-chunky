@@ -1,0 +1,19 @@
+{
+    "name": "kirby-chunky",
+    "version": "1.0.0",
+    "description": "Using Kirby Chunky, you can easily bypass the upload limits of your server or proxy and provide fast, secure, and resumable uploads using the tus protocol.",
+    "author": "DGTL.ONE <kirby@dgtl.one>",
+    "license": "MIT",
+    "scripts": {
+        "dev": "npx -y kirbyup src/index.js --watch",
+        "build": "npx -y kirbyup src/index.js"
+    },
+    "posthtml": {
+        "recognizeSelfClosing": true
+    },
+    "devDependencies": {
+        "cssnano": "^5.1.14",
+        "less": "^4.1.3",
+        "tus-js-client": "^3.0.1"
+    }
+}

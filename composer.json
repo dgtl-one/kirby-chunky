@@ -1,0 +1,30 @@
+{
+	"name": "dgtl-one/kirby-chunky",
+	"description": "Using Kirby Chunky, you can easily bypass the upload limits of your server or proxy and provide fast, secure, and resumable uploads using the tus protocol.",
+	"license": "MIT",
+	"type": "kirby-plugin",
+	"version": "1.0.0",
+	"minimum-stability": "beta",
+	"authors": [
+		{
+			"name": "DGTL.ONE",
+			"email": "kirby@dgtl.one"
+		}
+	],
+	"require": {
+		"php": "^7.2.5 || ^8.0",
+		"getkirby/composer-installer": "^1.1",
+		"ankitpokhrel/tus-php": "^2.3"
+	},
+	"config": {
+		"optimize-autoloader": true,
+		"classmap-authoritative": true,
+		"apcu-autoloader": true,
+		"allow-plugins": {
+			"getkirby/composer-installer": true
+		}
+	},
+	"extra": {
+        "installer-name": "chunky"
+    }
+}
