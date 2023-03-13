@@ -52,7 +52,8 @@ class Chunky
         $tus->setUploadDir($this->chunksDirectory());
         $tus->event()->addListener('tus-server.upload.complete', function (\TusPhp\Events\TusEvent $event) use ($scope)
         {
-            $scope->processFile($event->getFile()->getFilePath());
+            $details = $event->getFile()->details();
+            $scope->processFile($event->getFile()->getFilePath(), $details['metadata']['template'] ?? "");
         });
 
         $response = $tus->serve();
@@ -66,12 +67,13 @@ class Chunky
      * @return void
      */
 
-    private function processFile(string $tempFilePath)
+    private function processFile(string $tempFilePath, string $template)
     {
         // Create file at target
         \Kirby\Cms\File::create([
             'source' => $tempFilePath,
             'parent' => $this->target,
+            'template' => $template
         ]);
 
         // Remove file from temp directory

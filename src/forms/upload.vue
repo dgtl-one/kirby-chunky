@@ -23,6 +23,7 @@ export default {
             this.total = this.files.length;
             this.files.forEach((file) =>
             {
+                let template = this.options?.attributes?.template ?? "";
                 let tusUploader = new tus.Upload(file, {
                     endpoint: scope.$urls.api + "/dgtlone/chunky/upload",
                     chunkSize: bytes,
@@ -34,7 +35,8 @@ export default {
                     },
                     metadata: {
                         filename: file.name,
-                        filetype: file.type
+                        filetype: file.type,
+                        template: template
                     },
                     onError: function (error)
                     {
