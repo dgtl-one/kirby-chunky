@@ -42,37 +42,43 @@ abstract class AbstractVisitor
 
     protected function getStringArguments(Node\Expr\CallLike|Node\Attribute|Node\Expr\New_ $node, int|string $index, bool $indexIsRegex = false): array
     {
-        $args = $node instanceof Node\Expr\CallLike ? $node->getArgs() : $node->args;
-
         if (\is_string($index)) {
             return $this->getStringNamedArguments($node, $index, $indexIsRegex);
         }
 
-        if (\count($args) < $index) {
+        $args = $node instanceof Node\Expr\CallLike ? $node->getRawArgs() : $node->args;
+
+        if (!($arg = $args[$index] ?? null) instanceof Node\Arg) {
             return [];
         }
 
-        /** @var Node\Arg $arg */
-        $arg = $args[$index];
-        if (!$result = $this->getStringValue($arg->value)) {
-            return [];
-        }
-
-        return [$result];
+        return (array) $this->getStringValue($arg->value);
     }
 
     protected function hasNodeNamedArguments(Node\Expr\CallLike|Node\Attribute|Node\Expr\New_ $node): bool
     {
-        $args = $node instanceof Node\Expr\CallLike ? $node->getArgs() : $node->args;
+        $args = $node instanceof Node\Expr\CallLike ? $node->getRawArgs() : $node->args;
 
-        /** @var Node\Arg $arg */
         foreach ($args as $arg) {
-            if (null !== $arg->name) {
+            if ($arg instanceof Node\Arg && null !== $arg->name) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    protected function nodeFirstNamedArgumentIndex(Node\Expr\CallLike|Node\Attribute|Node\Expr\New_ $node): int
+    {
+        $args = $node instanceof Node\Expr\CallLike ? $node->getRawArgs() : $node->args;
+
+        foreach ($args as $i => $arg) {
+            if ($arg instanceof Node\Arg && null !== $arg->name) {
+                return $i;
+            }
+        }
+
+        return \PHP_INT_MAX;
     }
 
     private function getStringNamedArguments(Node\Expr\CallLike|Node\Attribute $node, string $argumentName = null, bool $isArgumentNamePattern = false): array

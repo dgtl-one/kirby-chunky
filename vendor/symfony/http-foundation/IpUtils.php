@@ -59,7 +59,7 @@ class IpUtils
      */
     public static function checkIp4(string $requestIp, string $ip): bool
     {
-        $cacheKey = $requestIp.'-'.$ip;
+        $cacheKey = $requestIp.'-'.$ip.'-v4';
         if (isset(self::$checkedIps[$cacheKey])) {
             return self::$checkedIps[$cacheKey];
         }
@@ -72,7 +72,7 @@ class IpUtils
             [$address, $netmask] = explode('/', $ip, 2);
 
             if ('0' === $netmask) {
-                return self::$checkedIps[$cacheKey] = filter_var($address, \FILTER_VALIDATE_IP, \FILTER_FLAG_IPV4);
+                return self::$checkedIps[$cacheKey] = false !== filter_var($address, \FILTER_VALIDATE_IP, \FILTER_FLAG_IPV4);
             }
 
             if ($netmask < 0 || $netmask > 32) {
@@ -104,7 +104,7 @@ class IpUtils
      */
     public static function checkIp6(string $requestIp, string $ip): bool
     {
-        $cacheKey = $requestIp.'-'.$ip;
+        $cacheKey = $requestIp.'-'.$ip.'-v6';
         if (isset(self::$checkedIps[$cacheKey])) {
             return self::$checkedIps[$cacheKey];
         }
@@ -114,16 +114,16 @@ class IpUtils
         }
 
         // Check to see if we were given a IP4 $requestIp or $ip by mistake
-        if (str_contains($requestIp, '.') || str_contains($ip, '.')) {
-            return self::$checkedIps[$cacheKey] = false;
-        }
-
         if (!filter_var($requestIp, \FILTER_VALIDATE_IP, \FILTER_FLAG_IPV6)) {
             return self::$checkedIps[$cacheKey] = false;
         }
 
         if (str_contains($ip, '/')) {
             [$address, $netmask] = explode('/', $ip, 2);
+
+            if (!filter_var($address, \FILTER_VALIDATE_IP, \FILTER_FLAG_IPV6)) {
+                return self::$checkedIps[$cacheKey] = false;
+            }
 
             if ('0' === $netmask) {
                 return (bool) unpack('n*', @inet_pton($address));
@@ -133,6 +133,10 @@ class IpUtils
                 return self::$checkedIps[$cacheKey] = false;
             }
         } else {
+            if (!filter_var($ip, \FILTER_VALIDATE_IP, \FILTER_FLAG_IPV6)) {
+                return self::$checkedIps[$cacheKey] = false;
+            }
+
             $address = $ip;
             $netmask = 128;
         }

@@ -75,6 +75,16 @@ In general, it is a good idea to start with a chunk size of around 5 MB and then
 
 Overall, the best chunk size will depend on the specific needs of the average file size of your site and the characteristics of the network environment in which it is being used.
 
+## Changelog
+
+### v1.0.1
+
+* Fixed an issue with files having templates ([#1](https://github.com/dgtl-one/kirby-chunky/issues/1))
+* Updated dependencies
+### v1.0.0
+
+* Initial commit
+
 ***
 
 ## What is TUS?

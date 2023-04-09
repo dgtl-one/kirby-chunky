@@ -3,7 +3,7 @@
 	"description": "Using Kirby Chunky, you can easily bypass the upload limits of your server or proxy and provide fast, secure, and resumable uploads using the tus protocol.",
 	"license": "MIT",
 	"type": "kirby-plugin",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"minimum-stability": "beta",
 	"authors": [
 		{
@@ -13,7 +13,7 @@
 	],
 	"require": {
 		"php": "^7.2.5 || ^8.0",
-		"getkirby/composer-installer": "^1.1",
+		"getkirby/composer-installer": "^1.2",
 		"ankitpokhrel/tus-php": "^2.3"
 	},
 	"config": {

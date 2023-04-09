@@ -12,11 +12,20 @@
 
 declare(strict_types=1);
 
-namespace Ramsey\Collection\Exception;
+namespace Ramsey\Collection;
 
 /**
- * Thrown when attempting to use a sort order that is not recognized.
+ * Collection sorting
  */
-class InvalidSortOrderException extends \RuntimeException
+enum Sort: string
 {
+    /**
+     * Sort items in a collection in ascending order.
+     */
+    case Ascending = 'asc';
+
+    /**
+     * Sort items in a collection in descending order.
+     */
+    case Descending = 'desc';
 }
