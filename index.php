@@ -9,7 +9,7 @@
  * @author DGTL.ONE
  */
 
-require_once __DIR__ . '/vendor/autoload.php';
+@include_once __DIR__ . '/vendor/autoload.php';
 load(['DGTLONE\Chunky' => __DIR__ . '/lib/chunky.php']);
 
 Kirby::plugin('dgtlone/kirby-chunky', [
