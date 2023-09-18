@@ -48,7 +48,7 @@ class Chunky
         $tus->setUploadDir($this->chunksDirectory());
         $tus->event()->addListener('tus-server.upload.complete', function (\TusPhp\Events\TusEvent $event) use ($scope) {
             $template = $details['metadata']['template'] ?? "";
-            $replace = !!($details['metadata']['replace'] ?? false);
+            $replace = ($details['metadata']['replace'] ?? "false") == "true";
             $scope->processFile($event->getFile()->getFilePath(), $template, $replace);
         });
 
