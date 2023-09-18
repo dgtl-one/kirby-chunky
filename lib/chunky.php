@@ -4,8 +4,6 @@ namespace DGTLONE;
 
 class Chunky
 {
-    private $type;
-    private $id;
     private $target;
 
     /**
@@ -18,20 +16,18 @@ class Chunky
         $target_path = $_SERVER['HTTP_X_TARGET_PATH'];
 
         // Check if the target path is the site root
-        if ($target_path === 'site')
-        {
+        if ($target_path === 'site') {
             $this->target = kirby()->site();
-        }
-        else
-        {
-            // Get the target type
-            $this->type = \Kirby\Toolkit\Str::before($target_path, '/');
-
+        } elseif (\Kirby\Toolkit\Str::endsWith(dirname($target_path), '/files') === true) {
+            $file = \Kirby\Cms\Find::parent($target_path);
+            //use the parent page of the file as target
+            $this->target = $file->parent();
+        } else {
             // Get the target id
-            $this->id = \Kirby\Toolkit\Str::after($target_path, '/') ?? null;
+            $id = \Kirby\Toolkit\Str::after($target_path, '/') ?? null;
 
             // Get the target page
-            $this->target = \Kirby\Cms\Find::page($this->id);
+            $this->target = \Kirby\Cms\Find::page($id);
         }
 
         // Server the tus server endpoint
@@ -50,10 +46,10 @@ class Chunky
         $tus->setUploadKey(\sha1($tus->getRequest()->extractFileName()));
         $tus->setApiPath('/' . kirby()->option('api.slug', 'api') . '/dgtlone/chunky/upload');
         $tus->setUploadDir($this->chunksDirectory());
-        $tus->event()->addListener('tus-server.upload.complete', function (\TusPhp\Events\TusEvent $event) use ($scope)
-        {
-            $details = $event->getFile()->details();
-            $scope->processFile($event->getFile()->getFilePath(), $details['metadata']['template'] ?? "");
+        $tus->event()->addListener('tus-server.upload.complete', function (\TusPhp\Events\TusEvent $event) use ($scope) {
+            $template = $details['metadata']['template'] ?? "";
+            $replace = ($details['metadata']['replace'] ?? "false") == "true";
+            $scope->processFile($event->getFile()->getFilePath(), $template, $replace);
         });
 
         $response = $tus->serve();
@@ -67,8 +63,19 @@ class Chunky
      * @return void
      */
 
-    private function processFile(string $tempFilePath, string $template)
+    private function processFile(string $tempFilePath, string $template, bool $replace)
     {
+        if ($replace) {
+            $target_path = $_SERVER['HTTP_X_TARGET_PATH'];
+            $file = \Kirby\Cms\Find::parent($target_path);
+            // overwrite the original
+            if (\Kirby\Filesystem\F::move($tempFilePath, $file->root(), true) !== true) {
+                throw new \LogicException('The file could not be created');
+            }
+
+            return $file->clone();
+        }
+
         // Create file at target
         \Kirby\Cms\File::create([
             'source' => $tempFilePath,
@@ -92,8 +99,7 @@ class Chunky
         $temp_directory = $this->target->contentFileDirectory() . '/.dgtlone_chunky';
 
         // Create the temp directory if it doesn't exist
-        if (!\file_exists($temp_directory))
-        {
+        if (!\file_exists($temp_directory)) {
             \Kirby\Filesystem\Dir::make($temp_directory);
         }
 
@@ -116,8 +122,7 @@ class Chunky
         $max_filesizes[] = \Kirby\Toolkit\Str::toBytes(\ini_get('post_max_size'));
 
         // Check if server is behind the cloudflare proxy
-        if (isset($_SERVER['HTTP_CF_CONNECTING_IP']))
-        {
+        if (isset($_SERVER['HTTP_CF_CONNECTING_IP'])) {
             $max_filesizes[] = \Kirby\Toolkit\Str::toBytes('100M');
         }
 
@@ -126,14 +131,12 @@ class Chunky
 
         // Check if the chunk size is set in the plugin options
         $chunk_size_setting = kirby()->option('dgtlone.kirby-uploader.chunk_size', null);
-        if ($chunk_size_setting !== null)
-        {
+        if ($chunk_size_setting !== null) {
             // Get the chunk size from the plugin options in bytes
             $chunk_size = \Kirby\Toolkit\Str::toBytes($chunk_size_setting);
 
             // Check if the chunk size is smaller than the max file size
-            if ($chunk_size < $max_filesize)
-            {
+            if ($chunk_size < $max_filesize) {
                 return $chunk_size;
             }
         }
@@ -161,8 +164,7 @@ class Chunky
             [
                 'pattern' => 'dgtlone/chunky/upload(:all)',
                 'method' => 'CONNECT|DELETE|GET|HEAD|OPTIONS|PATCH|POST|PUT|TRACE',
-                'action'  => function ()
-                {
+                'action'  => function () {
                     return new \DGTLONE\Chunky();
                 }
             ],
@@ -172,8 +174,7 @@ class Chunky
             [
                 'pattern' => 'dgtlone/chunky/chunk_size',
                 'method' => 'GET',
-                'action'  => function ()
-                {
+                'action'  => function () {
                     return [
                         'bytes' => \DGTLONE\Chunky::chunkSize()
                     ];

@@ -9,9 +9,11 @@
  */
 
 import upload from "./forms/upload.vue";
+import fileView from "./views/file-view.vue";
 
 panel.plugin('dgtlone/kirby-chunky', {
     components: {
         'k-upload': upload,
+        'k-file-view': fileView,
     },
 });
