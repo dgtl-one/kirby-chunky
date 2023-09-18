@@ -47,8 +47,9 @@ class Chunky
         $tus->setApiPath('/' . kirby()->option('api.slug', 'api') . '/dgtlone/chunky/upload');
         $tus->setUploadDir($this->chunksDirectory());
         $tus->event()->addListener('tus-server.upload.complete', function (\TusPhp\Events\TusEvent $event) use ($scope) {
-            $details = $event->getFile()->details();
-            $scope->processFile($event->getFile()->getFilePath(), $details['metadata']['template'] ?? "");
+            $template = $details['metadata']['template'] ?? "";
+            $replace = !!($details['metadata']['replace'] ?? false);
+            $scope->processFile($event->getFile()->getFilePath(), $template, $replace);
         });
 
         $response = $tus->serve();
@@ -62,8 +63,19 @@ class Chunky
      * @return void
      */
 
-    private function processFile(string $tempFilePath, string $template)
+    private function processFile(string $tempFilePath, string $template, bool $replace)
     {
+        if ($replace) {
+            $target_path = $_SERVER['HTTP_X_TARGET_PATH'];
+            $file = \Kirby\Cms\Find::parent($target_path);
+            // overwrite the original
+            if (\Kirby\Filesystem\F::move($tempFilePath, $file->root(), true) !== true) {
+                throw new \LogicException('The file could not be created');
+            }
+
+            return $file->clone();
+        }
+
         // Create file at target
         \Kirby\Cms\File::create([
             'source' => $tempFilePath,
